@@ -43,6 +43,8 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart3_rx;
 DMA_HandleTypeDef hdma_usart3_tx;
+TIM_HandleTypeDef htim3;
+
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -55,6 +57,8 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_TIM3_Init(void);
+
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -89,21 +93,15 @@ int main(void)
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
+	MX_TIM3_Init();
+
 
   /* USER CODE BEGIN 2 */
-	
-	
-//status =  HAL_UART_Receive(&huart2, aRxBuffer, RXBUFFERSIZE, 5000); /* MaxCmdSize and MaxCmdTimeout depend on user application  */
+	HAL_TIM_Base_Start_IT(&htim3);
+	HAL_UART_Transmit_DMA(&huart3,g_cUart3_Buff,BUFFSIZE);
 
   /* USER CODE END 2 */
-	//HAL_UART_Transmit_IT(&huart3,g_cUart3_Buff,5);
-	HAL_UART_Transmit_DMA(&huart3,g_cUart3_Buff,BUFFSIZE);
-	
-	//HAL_UART_Receive_DMA(&huart2,g_cUart3_Buff,1);
-	
 
-	//HAL_Delay(2000);
-	//HAL_UART_Receive_IT(&huart2,g_cUart3_Buff,5);
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -121,42 +119,7 @@ int main(void)
 
 }
 
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
-{
-	
-	  if(UartHandle->Instance == USART3)
 
-  {
-
-    HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
-
-  }
-
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
-{
-  if(UartHandle->Instance == USART3)  {
-
-    if(!memcmp(g_cUart3_Buff,cmdStart,BUFFSIZE)){
-
-			HAL_UART_Transmit_DMA(&huart3,cmdStart,BUFFSIZE);
-		}
-		
-		if(!memcmp(g_cUart3_Buff,cmdStop,BUFFSIZE)){
-
-			HAL_UART_Transmit_DMA(&huart3,cmdStop,BUFFSIZE);
-		}
-			
-  }
-	
-}
-
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
-{
-  /* Turn LED3 on: Transfer error in reception/transmission process */
-  HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_15);
-}
 
 /** System Clock Configuration
 */
@@ -209,6 +172,29 @@ void MX_USART2_UART_Init(void)
   huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart2.Init.OverSampling = UART_OVERSAMPLING_16;
   HAL_UART_Init(&huart2);
+
+}
+
+/* TIM3 init function */
+void MX_TIM3_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 16800;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 9999;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  HAL_TIM_Base_Init(&htim3);
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig);
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig);
 
 }
 
@@ -385,7 +371,52 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+	
+	  if(UartHandle->Instance == USART3)
 
+  {
+
+    HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
+
+  }
+
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+  if(UartHandle->Instance == USART3)  {
+
+    if(!memcmp(g_cUart3_Buff,cmdStart,BUFFSIZE)){
+
+			HAL_UART_Transmit_DMA(&huart3,cmdStart,BUFFSIZE);
+		}
+		
+		if(!memcmp(g_cUart3_Buff,cmdStop,BUFFSIZE)){
+
+			HAL_UART_Transmit_DMA(&huart3,cmdStop,BUFFSIZE);
+		}
+			
+  }
+	
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
+{
+  /* Turn LED3 on: Transfer error in reception/transmission process */
+  HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_15);
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+   if (htim->Instance==TIM3)
+      {
+        HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_15);
+
+      }
+
+}
 /* USER CODE END 4 */
 
 #ifdef USE_FULL_ASSERT

@@ -1,4 +1,4 @@
-stm32f407bt configuration/\main.o: ../Src/main.c
+stm32f407bt configuration/\main.o: ..\Src\main.c
 stm32f407bt configuration/\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 stm32f407bt configuration/\main.o: ../Inc/stm32f4xx_hal_conf.h
 stm32f407bt configuration/\main.o: ../Inc/mxconstants.h
@@ -26,5 +26,7 @@ stm32f407bt configuration/\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx
 stm32f407bt configuration/\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
 stm32f407bt configuration/\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 stm32f407bt configuration/\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
+stm32f407bt configuration/\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
+stm32f407bt configuration/\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 stm32f407bt configuration/\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 stm32f407bt configuration/\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

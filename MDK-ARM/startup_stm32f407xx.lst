@@ -870,13 +870,13 @@ ARM Macro Assembler    Page 14
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
 erwork --depend="stm32f407bt configuration/\startup_stm32f407xx.d" -o"stm32f407
-bt configuration/\startup_stm32f407xx.o" -IC:\Users\krakapwa\Documents\stm32f40
-7bt\MDK-ARM\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include -IC:\Keil_v
-5\ARM\PACK\Keil\STM32F4xx_DFP\2.5.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include -
--predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 515" --prede
-fine="_RTE_ SETA 1" --predefine="STM32F407xx SETA 1" --list=startup_stm32f407xx
-.lst ../Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/arm/startup_stm32f40
-7xx.s
+bt configuration/\startup_stm32f407xx.o" -IC:\Users\krakapwa\Documents\test\stm
+32F407bt\MDK-ARM\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include -IC:\K
+eil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.5.0\Drivers\CMSIS\Device\ST\STM32F4xx\Incl
+ude --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 515" --
+predefine="_RTE_ SETA 1" --predefine="STM32F407xx SETA 1" --list=startup_stm32f
+407xx.lst ../Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/arm/startup_stm
+32f407xx.s
 
 
 

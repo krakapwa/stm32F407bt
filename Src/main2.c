@@ -32,10 +32,10 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "string.h"
 
 /* USER CODE BEGIN Includes */
-const int RXBUFFERSIZE = 1;
-uint8_t aRxBuffer[RXBUFFERSIZE];
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -43,6 +43,8 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart3_rx;
 DMA_HandleTypeDef hdma_usart3_tx;
+TIM_HandleTypeDef htim3;
+
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -55,6 +57,8 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_TIM3_Init(void);
+
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -62,13 +66,17 @@ static void MX_USART3_UART_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+const int BUFFSIZE = 5;
+uint8_t g_cUart3_Buff[BUFFSIZE] = "Hello";
+uint8_t cmdStart[BUFFSIZE] = "start";
+uint8_t cmdStop[BUFFSIZE] = "stop";
 /* USER CODE END 0 */
 
 int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+
 
   /* USER CODE END 1 */
 
@@ -85,11 +93,12 @@ int main(void)
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
+	MX_TIM3_Init();
+
 
   /* USER CODE BEGIN 2 */
-	
-	
-//status =  HAL_UART_Receive(&huart2, aRxBuffer, RXBUFFERSIZE, 5000); /* MaxCmdSize and MaxCmdTimeout depend on user application  */
+	HAL_TIM_Base_Start_IT(&htim3);
+	HAL_UART_Transmit_DMA(&huart3,g_cUart3_Buff,BUFFSIZE);
 
   /* USER CODE END 2 */
 
@@ -99,12 +108,18 @@ int main(void)
   {
   /* USER CODE END WHILE */
 
+		HAL_UART_Receive_DMA(&huart3,g_cUart3_Buff,BUFFSIZE);
+
+		//HAL_UART_Transmit_IT(&huart3,g_cUart3_Buff,5);
+		
   /* USER CODE BEGIN 3 */
 
   }
   /* USER CODE END 3 */
 
 }
+
+
 
 /** System Clock Configuration
 */
@@ -149,7 +164,7 @@ void MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -160,18 +175,41 @@ void MX_USART2_UART_Init(void)
 
 }
 
+/* TIM3 init function */
+void MX_TIM3_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 16800;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 9999;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  HAL_TIM_Base_Init(&htim3);
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig);
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig);
+
+}
+
 /* USART3 init function */
 void MX_USART3_UART_Init(void)
 {
 
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
+  huart3.Init.BaudRate = 9600;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
   huart3.Init.Mode = UART_MODE_TX_RX;
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart3.Init.OverSampling = UART_OVERSAMPLING_8;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   HAL_UART_Init(&huart3);
 
 }
@@ -333,7 +371,51 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+	
+	  if(UartHandle->Instance == USART3)
 
+  {
+
+    HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_13);
+
+  }
+
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+  if(UartHandle->Instance == USART3)  {
+
+    if(!memcmp(g_cUart3_Buff,cmdStart,BUFFSIZE)){
+
+			HAL_UART_Transmit_DMA(&huart3,cmdStart,BUFFSIZE);
+		}
+		
+		if(!memcmp(g_cUart3_Buff,cmdStop,BUFFSIZE)){
+
+			HAL_UART_Transmit_DMA(&huart3,cmdStop,BUFFSIZE);
+		}
+			
+  }
+	
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
+{
+  /* Turn LED3 on: Transfer error in reception/transmission process */
+  HAL_GPIO_TogglePin(GPIOD,GPIO_PIN_15);
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+   if (htim->Instance==TIM3)
+      {
+      //do something here
+      }
+
+}
 /* USER CODE END 4 */
 
 #ifdef USE_FULL_ASSERT
